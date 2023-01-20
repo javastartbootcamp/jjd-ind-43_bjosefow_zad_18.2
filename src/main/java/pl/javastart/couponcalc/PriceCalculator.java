@@ -7,33 +7,21 @@ import java.util.List;
 public class PriceCalculator {
 
     public double calculatePrice(List<Product> products, List<Coupon> coupons) {
-        double sum = 0;
         if (coupons == null && products == null) {
             return 0.0;
         }
         if (coupons == null) {
             return getSumPriceWithoutDisc(products);
         } else {
-            double sumWithDisc;
-            double theBestSumWithDisc = 0;
+            double theBestSumWithDisc = Double.MAX_VALUE;
             for (Coupon coupon : coupons) {
-                if (!checkIfCouponHasCategory(coupon)) {
-                    sumWithDisc = getSumPriceWithCouponForAll(products, coupon);
-                } else {
-                    sumWithDisc = getSumPriceWithCouponWithCat(products, coupon);
-                }
-                if (theBestSumWithDisc == 0 || theBestSumWithDisc > sumWithDisc) {
+                double sumWithDisc = getSumPriceWithCoupon(products, coupon);
+                if (sumWithDisc < theBestSumWithDisc) {
                     theBestSumWithDisc = sumWithDisc;
                 }
             }
-            sum = theBestSumWithDisc;
+            return theBestSumWithDisc;
         }
-        return sum;
-    }
-
-    private boolean checkIfCouponHasCategory(Coupon coupon) {
-        Category category = coupon.getCategory();
-        return category != null;
     }
 
     private double calculatePriceWithDiscount(double price, int discountInPercent) {
@@ -42,10 +30,10 @@ public class PriceCalculator {
         return resultBig.doubleValue();
     }
 
-    private double getSumPriceWithCouponWithCat(List<Product> products, Coupon coupon) {
+    private double getSumPriceWithCoupon(List<Product> products, Coupon coupon) {
         double sum = 0;
         for (Product product : products) {
-            if (product.getCategory().equals(coupon.getCategory())) {
+            if (coupon.getCategory() == null || product.getCategory().equals(coupon.getCategory())) {
                 sum += calculatePriceWithDiscount(product.getPrice(), coupon.getDiscountValueInPercents());
             } else {
                 sum += product.getPrice();
@@ -58,13 +46,6 @@ public class PriceCalculator {
         double sum = 0;
         return products.stream()
                 .map(Product::getPrice)
-                .reduce(sum, Double::sum);
-    }
-
-    private double getSumPriceWithCouponForAll(List<Product> products, Coupon coupon) {
-        double sum = 0;
-        return products.stream()
-                .map(product -> calculatePriceWithDiscount(product.getPrice(), coupon.getDiscountValueInPercents()))
                 .reduce(sum, Double::sum);
     }
 }
