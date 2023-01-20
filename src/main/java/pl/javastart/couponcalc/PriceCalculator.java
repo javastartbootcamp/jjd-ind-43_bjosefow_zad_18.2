@@ -13,35 +13,30 @@ public class PriceCalculator {
         }
         if (coupons == null) {
             return getSumPriceWithoutDisc(products);
-        }
-        if (coupons.size() == 1) {
-            Coupon coupon = coupons.get(0);
-            if (!checkIfCouponHasCategory(coupon)) {
-                return getSumPriceWithCouponForAll(products, coupon);
-            } else {
-                return getSumPriceWithCouponWithCat(products, coupon);
-            }
         } else {
-            double sumWithoutDisc = getSumPriceWithoutDisc(products);
-            double theBestDiff = 0;
+            double theBestSumWithDisc = 1000;
+            double sumWithDisc;
             for (Coupon coupon : coupons) {
-                double sumWithDisc = getSumPriceWithCouponWithCat(products, coupon);
-                double tempDiff = sumWithoutDisc - sumWithDisc;
-                if (tempDiff > theBestDiff) {
-                    theBestDiff = tempDiff;
+                if (!checkIfCouponHasCategory(coupon)) {
+                    sumWithDisc = getSumPriceWithCouponForAll(products, coupon);
+                } else {
+                    sumWithDisc = getSumPriceWithCouponWithCat(products, coupon);
+                }
+                if (theBestSumWithDisc > sumWithDisc) {
+                    theBestSumWithDisc = sumWithDisc;
                 }
             }
-            sum = sumWithoutDisc - theBestDiff;
+            sum = theBestSumWithDisc;
         }
         return sum;
     }
 
-    public boolean checkIfCouponHasCategory(Coupon coupon) {
+    private boolean checkIfCouponHasCategory(Coupon coupon) {
         Category category = coupon.getCategory();
         return category != null;
     }
 
-    public double calculatePriceWithDiscount(double price, int discountInPercent) {
+    private double calculatePriceWithDiscount(double price, int discountInPercent) {
         double result = (1 - (double) discountInPercent / 100) * price;
         BigDecimal resultBig = new BigDecimal(result).setScale(2, RoundingMode.HALF_UP);
         return resultBig.doubleValue();
@@ -59,14 +54,14 @@ public class PriceCalculator {
         return sum;
     }
 
-    public double getSumPriceWithoutDisc(List<Product> products) {
+    private double getSumPriceWithoutDisc(List<Product> products) {
         double sum = 0;
         return products.stream()
                 .map(Product::getPrice)
                 .reduce(sum, Double::sum);
     }
 
-    public double getSumPriceWithCouponForAll(List<Product> products, Coupon coupon) {
+    private double getSumPriceWithCouponForAll(List<Product> products, Coupon coupon) {
         double sum = 0;
         return products.stream()
                 .map(product -> calculatePriceWithDiscount(product.getPrice(), coupon.getDiscountValueInPercents()))
