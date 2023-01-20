@@ -14,15 +14,15 @@ public class PriceCalculator {
         if (coupons == null) {
             return getSumPriceWithoutDisc(products);
         } else {
-            double theBestSumWithDisc = 1000;
             double sumWithDisc;
+            double theBestSumWithDisc = 0;
             for (Coupon coupon : coupons) {
                 if (!checkIfCouponHasCategory(coupon)) {
                     sumWithDisc = getSumPriceWithCouponForAll(products, coupon);
                 } else {
                     sumWithDisc = getSumPriceWithCouponWithCat(products, coupon);
                 }
-                if (theBestSumWithDisc > sumWithDisc) {
+                if (theBestSumWithDisc == 0 || theBestSumWithDisc > sumWithDisc) {
                     theBestSumWithDisc = sumWithDisc;
                 }
             }
